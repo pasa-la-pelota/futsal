@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚽ Player Time Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --green: #2ecc40;
+    --green-dark: #1a8a26;
+    --red: #e74c3c;
+    --red-dark: #a93226;
+    --yellow: #f5c518;
+    --blue-dark: #1a2a3a;
+    --blue-mid: #243447;
+    --blue-light: #2e4261;
+    --white: #f0f4f8;
+    --gray: #7f8c8d;
+    --card-bg: #1e3050;
+    --border: #2e4a6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--blue-dark);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--blue-mid);
+    border-bottom: 3px solid var(--yellow);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--yellow);
+  }
+  #clock {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 2px;
+    min-width: 90px;
+    text-align: right;
+  }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px; }
+  .screen.active { display: block; }
+
+  /* SETUP SCREEN */
+  #setup-screen h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  #player-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .player-input-row { display: flex; gap: 8px; align-items: center; }
+  .player-input-row input {
+    flex: 1;
+    padding: 14px 12px;
+    font-size: 1.1rem;
+    font-family: 'Barlow', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--white);
+    outline: none;
+  }
+  .player-input-row input:focus { border-color: var(--yellow); }
+  .btn-remove-player {
+    background: var(--red);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.3rem;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+
+  .btn { border: none; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: transform 0.1s, filter 0.1s; }
+  .btn:active { transform: scale(0.96); filter: brightness(0.9); }
+
+  .btn-add {
+    width: 100%;
+    background: var(--blue-light);
+    color: var(--white);
+    font-size: 1.1rem;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 2px dashed var(--border);
+  }
+  .btn-start {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    font-size: 1.4rem;
+    padding: 18px;
+    letter-spacing: 1px;
+  }
+
+  /* GAME SCREEN */
+  /* PAUSE/RESUME BIG BUTTON */
+  #pause-bar {
+    position: sticky;
+    top: 61px;
+    z-index: 90;
+    padding: 10px 16px 6px;
+    background: var(--blue-dark);
+  }
+  #btn-pause {
+    width: 100%;
+    background: var(--yellow);
+    color: var(--blue-dark);
+    font-size: 1.5rem;
+    padding: 18px;
+    border-radius: 14px;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 0 #a88800;
+  }
+  #btn-pause.paused {
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 4px 0 var(--green-dark);
+  }
+
+  /* PAUSED OVERLAY */
+  #paused-banner {
+    display: none;
+    background: rgba(0,0,0,0.55);
+    text-align: center;
+    padding: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #paused-banner.visible { display: block; }
+
+  /* PLAYER LIST */
+  #player-list { padding: 0 16px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+  .player-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 10px 10px 10px 14px;
+    gap: 10px;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 72px;
+  }
+  .player-card.on-field {
+    border-color: var(--green);
+    background: #1a3a24;
+  }
+  .player-card.on-bench {
+    border-color: var(--red);
+    background: #3a1a1a;
+  }
+
+  .player-status-dot {
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    background: var(--gray);
+    transition: background 0.2s;
+  }
+  .player-card.on-field .player-status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .player-card.on-bench .player-status-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  .player-info { flex: 1; min-width: 0; }
+  .player-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .player-time {
+    font-size: 0.92rem;
+    color: #a0b4c8;
+    margin-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .player-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-bench, .btn-field {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    font-size: 1.6rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+  }
+  .btn-bench:active, .btn-field:active { transform: scale(0.93); }
+  .btn-bench { background: var(--red); color: white; }
+  .btn-field { background: var(--green); color: white; }
+  .btn-bench:disabled, .btn-field:disabled { opacity: 0.35; }
+
+  /* END GAME */
+  #end-bar { padding: 16px; margin-top: 8px; }
+  #btn-end {
+    width: 100%;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: white;
+    font-size: 1.3rem;
+    padding: 18px;
+    box-shadow: 0 4px 0 #7b241c;
+    letter-spacing: 1px;
+  }
+
+  /* RESULTS SCREEN */
+  #results-screen h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--yellow);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  #results-date { text-align: center; color: var(--gray); font-size: 0.9rem; margin-bottom: 18px; }
+
+  .results-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--yellow);
+    letter-spacing: 1px;
+    margin: 18px 0 8px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 4px;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    margin-bottom: 7px;
+    border-left: 4px solid var(--green);
+  }
+  .result-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 700; text-transform: uppercase; }
+  .result-time { font-size: 1.05rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+
+  .interval-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    margin-bottom: 7px;
+    padding: 10px 14px;
+    border-left: 4px solid var(--blue-light);
+  }
+  .interval-time { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; color: var(--yellow); margin-bottom: 3px; }
+  .interval-players { font-size: 0.92rem; color: var(--white); line-height: 1.4; }
+
+  .btn-new-game {
+    width: 100%;
+    background: var(--green);
+    color: white;
+    font-size: 1.3rem;
+    padding: 18px;
+    margin-top: 20px;
+    box-shadow: 0 4px 0 var(--green-dark);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--blue-mid);
+    border: 2px solid var(--yellow);
+    border-radius: 18px;
+    padding: 28px 24px;
+    max-width: 320px;
+    width: 90%;
+    text-align: center;
+  }
+  .modal h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--yellow); text-transform: uppercase; margin-bottom: 10px; }
+  .modal p { color: var(--white); margin-bottom: 22px; font-size: 1rem; }
+  .modal-btns { display: flex; gap: 12px; }
+  .modal-btns .btn { flex: 1; font-size: 1.1rem; padding: 16px; }
+  .btn-confirm-end { background: var(--red); color: white; }
+  .btn-cancel { background: var(--blue-light); color: white; }
+
+  /* Number tag */
+  .player-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* Save indicator */
+  #save-indicator {
+    text-align: center;
+    color: var(--green);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Player Tracker</h1>
+  <div id="clock">00:00</div>
+</header>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="screen active">
+  <h2>New Game — Add Players</h2>
+  <div id="player-inputs"></div>
+  <button class="btn btn-add" onclick="addPlayerInput()">＋ Add Player</button>
+  <button class="btn btn-start" onclick="startGame()">▶ Start Game</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+  <div id="pause-bar">
+    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+  </div>
+  <div id="paused-banner">⏸ GAME PAUSED</div>
+  <div id="player-list"></div>
+  <div id="end-bar">
+    <button class="btn btn-end" onclick="showEndConfirm()">🏁 END GAME</button>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="screen">
+  <h2>Game Summary</h2>
+  <div id="results-date"></div>
+  <div id="results-content"></div>
+  <div id="save-indicator">✅ Saved to file</div>
+  <button class="btn btn-new-game" onclick="newGame()">⚽ New Game</button>
+</div>
+
+<!-- CONFIRM END MODAL -->
+<div class="modal-overlay" id="end-modal">
+  <div class="modal">
+    <h3>End Game?</h3>
+    <p>Are you sure you want to end the game? This will stop all timers and save the results.</p>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="hideEndConfirm()">Cancel</button>
+      <button class="btn btn-confirm-end" onclick="endGame()">End Game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let players = [];
+// players[i] = { name, onField, fieldTime (ms), fieldStart (Date|null) }
+
+let gameRunning = false;
+let gamePaused = false;
+let gameStartTime = null;
+let gameElapsed = 0; // ms
+let pauseStart = null;
+let clockInterval = null;
+
+// intervals between substitutions
+// each entry: { start (ms), end (ms|null), playerNames[] }
+let intervals = [];
+let currentIntervalStart = 0;
+let currentOnField = [];
+
+// ── SETUP ──────────────────────────────────────────────────────────────────
+function init() {
+  const container = document.getElementById('player-inputs');
+  container.innerHTML = '';
+  for (let i = 0; i < 7; i++) addPlayerInput();
+}
+
+function addPlayerInput() {
+  const container = document.getElementById('player-inputs');
+  const idx = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'player-input-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Player ${idx}" autocomplete="off" autocorrect="off" autocapitalize="words" />
+    <button class="btn btn-remove-player" onclick="removePlayerInput(this)">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removePlayerInput(btn) {
+  const container = document.getElementById('player-inputs');
+  if (container.children.length > 1) btn.parentElement.remove();
+}
+
+function startGame() {
+  const inputs = document.querySelectorAll('#player-inputs input');
+  players = [];
+  inputs.forEach((inp, i) => {
+    const name = inp.value.trim() || `Player ${i + 1}`;
+    players.push({ name, onField: false, fieldTime: 0, fieldStart: null });
+  });
+  if (players.length < 1) { alert('Add at least one player.'); return; }
+
+  gameRunning = true;
+  gamePaused = false;
+  gameStartTime = Date.now();
+  gameElapsed = 0;
+  pauseStart = null;
+  intervals = [];
+  currentIntervalStart = 0;
+  currentOnField = [];
+
+  renderPlayerList();
+  showScreen('game-screen');
+  startClock();
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function startClock() {
+  clearInterval(clockInterval);
+  clockInterval = setInterval(() => {
+    if (!gamePaused) {
+      gameElapsed = Date.now() - gameStartTime;
+    }
+    document.getElementById('clock').textContent = formatTime(gameElapsed);
+    updatePlayerTimes();
+  }, 500);
+}
+
+function formatTime(ms) {
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60).toString().padStart(2, '0');
+  const s = (total % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function formatTimeLabel(ms) {
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = (total % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+// ── PAUSE ──────────────────────────────────────────────────────────────────
+function togglePause() {
+  const btn = document.getElementById('btn-pause');
+  const banner = document.getElementById('paused-banner');
+  if (!gamePaused) {
+    gamePaused = true;
+    pauseStart = Date.now();
+    // freeze all on-field players
+    players.forEach(p => {
+      if (p.onField && p.fieldStart !== null) {
+        p.fieldTime += Date.now() - p.fieldStart;
+        p.fieldStart = null;
+      }
+    });
+    btn.textContent = '▶ RESUME';
+    btn.classList.add('paused');
+    banner.classList.add('visible');
+  } else {
+    gamePaused = false;
+    const pausedDuration = Date.now() - pauseStart;
+    gameStartTime += pausedDuration; // shift start so elapsed stays correct
+    pauseStart = null;
+    // resume on-field players
+    players.forEach(p => {
+      if (p.onField) p.fieldStart = Date.now();
+    });
+    btn.textContent = '⏸ PAUSE';
+    btn.classList.remove('paused');
+    banner.classList.remove('visible');
+  }
+}
+
+// ── PLAYER CONTROLS ────────────────────────────────────────────────────────
+function setField(idx) {
+  if (gamePaused) return;
+  if (players[idx].onField) return;
+  // close current interval, start new
+  closeInterval();
+  players[idx].onField = true;
+  players[idx].fieldStart = Date.now();
+  currentOnField = players.filter(p => p.onField).map(p => p.name);
+  currentIntervalStart = gameElapsed;
+  renderPlayerList();
+}
+
+function setBench(idx) {
+  if (gamePaused) return;
+  if (!players[idx].onField) return;
+  // close interval, start new
+  closeInterval();
+  if (players[idx].fieldStart !== null) {
+    players[idx].fieldTime += Date.now() - players[idx].fieldStart;
+    players[idx].fieldStart = null;
+  }
+  players[idx].onField = false;
+  currentOnField = players.filter(p => p.onField).map(p => p.name);
+  currentIntervalStart = gameElapsed;
+  renderPlayerList();
+}
+
+function closeInterval() {
+  if (currentOnField.length > 0) {
+    intervals.push({
+      start: currentIntervalStart,
+      end: gameElapsed,
+      playerNames: [...currentOnField]
+    });
+  }
+}
+
+// ── RENDER ──────────────────────────────────────────────────────────────────
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = `player-card ${p.onField ? 'on-field' : 'on-bench'}`;
+    card.id = `card-${i}`;
+    card.innerHTML = `
+      <div class="player-status-dot"></div>
+      <div class="player-num">${i + 1}</div>
+      <div class="player-info">
+        <div class="player-name">${escHtml(p.name)}</div>
+        <div class="player-time" id="ptime-${i}">${formatTime(p.fieldTime)}</div>
+      </div>
+      <div class="player-btns">
+        <button class="btn btn-bench" onclick="setBench(${i})" ${!p.onField ? 'disabled' : ''} title="Bench">🔴</button>
+        <button class="btn btn-field" onclick="setField(${i})" ${p.onField ? 'disabled' : ''} title="Field">🟢</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function updatePlayerTimes() {
+  players.forEach((p, i) => {
+    const el = document.getElementById(`ptime-${i}`);
+    if (!el) return;
+    let t = p.fieldTime;
+    if (p.onField && p.fieldStart !== null && !gamePaused) {
+      t += Date.now() - p.fieldStart;
+    }
+    el.textContent = formatTime(t);
+  });
+}
+
+// ── END GAME ───────────────────────────────────────────────────────────────
+function showEndConfirm() { document.getElementById('end-modal').classList.add('visible'); }
+function hideEndConfirm() { document.getElementById('end-modal').classList.remove('visible'); }
+
+function endGame() {
+  hideEndConfirm();
+  clearInterval(clockInterval);
+
+  // Finalize all on-field players
+  closeInterval();
+  players.forEach(p => {
+    if (p.onField && p.fieldStart !== null) {
+      p.fieldTime += Date.now() - p.fieldStart;
+      p.fieldStart = null;
+    }
+    p.onField = false;
+  });
+
+  // Add last interval if needed (catches the last stretch)
+  // Already closed above
+
+  gameRunning = false;
+  showResults();
+}
+
+// ── RESULTS ──────────────────────────────────────────────────────────────
+function showResults() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateFile = now.toISOString().slice(0, 10);
+
+  document.getElementById('results-date').textContent = dateStr;
+
+  // Sort players by time descending
+  const sorted = [...players].sort((a, b) => b.fieldTime - a.fieldTime);
+
+  let html = '<div class="results-section-title">⏱ Playing Time</div>';
+  sorted.forEach(p => {
+    html += `<div class="result-row">
+      <span class="result-name">${escHtml(p.name)}</span>
+      <span class="result-time">${formatTime(p.fieldTime)}</span>
+    </div>`;
+  });
+
+  html += '<div class="results-section-title">🔄 Field Intervals</div>';
+  if (intervals.length === 0) {
+    html += '<div style="color:var(--gray);font-size:0.9rem;padding:8px 0;">No substitutions recorded.</div>';
+  }
+  intervals.forEach(iv => {
+    if (iv.playerNames.length === 0) return;
+    html += `<div class="interval-card">
+      <div class="interval-time">${formatTimeLabel(iv.start)} → ${formatTimeLabel(iv.end)}</div>
+      <div class="interval-players">${iv.playerNames.map(n => escHtml(n)).join(', ')}</div>
+    </div>`;
+  });
+
+  document.getElementById('results-content').innerHTML = html;
+  showScreen('results-screen');
+
+  // Build and save file
+  saveToFile(sorted, intervals, dateFile, dateStr);
+}
+
+function saveToFile(sorted, ivs, dateFile, dateStr) {
+  let text = `GAME SUMMARY — ${dateStr}\n`;
+  text += '='.repeat(50) + '\n\n';
+  text += 'PLAYING TIME\n';
+  text += '-'.repeat(30) + '\n';
+  sorted.forEach(p => {
+    text += `${p.name.padEnd(20)} ${formatTime(p.fieldTime)}\n`;
+  });
+  text += '\nFIELD INTERVALS\n';
+  text += '-'.repeat(30) + '\n';
+  ivs.forEach(iv => {
+    if (iv.playerNames.length === 0) return;
+    text += `${formatTimeLabel(iv.start)} to ${formatTimeLabel(iv.end)}: ${iv.playerNames.join(', ')}\n`;
+  });
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `game-${dateFile}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const ind = document.getElementById('save-indicator');
+  ind.style.display = 'block';
+  ind.textContent = `✅ Saved as game-${dateFile}.txt`;
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function newGame() {
+  showScreen('setup-screen');
+  document.getElementById('clock').textContent = '00:00';
+  init();
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
