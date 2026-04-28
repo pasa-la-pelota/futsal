@@ -614,12 +614,23 @@ function showResults() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const dateFile = now.toISOString().slice(0, 10);
 
-  document.getElementById('results-date').textContent = dateStr;
-
   // Sort players by time descending
   const sorted = [...players].sort((a, b) => b.fieldTime - a.fieldTime);
 
-  let html = '<div class="results-section-title">⏱ Playing Time</div>';
+  // Hide pause bar and paused banner
+  document.getElementById('pause-bar').style.display = 'none';
+  document.getElementById('paused-banner').style.display = 'none';
+  document.getElementById('end-bar').style.display = 'none';
+
+  // Replace player list with results
+  const list = document.getElementById('player-list');
+  let html = `
+    <div style="text-align:center;margin-bottom:6px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;">🏁 Game Over</div>
+      <div style="color:var(--gray);font-size:0.88rem;margin-top:2px;">${dateStr}</div>
+    </div>
+    <div class="results-section-title">⏱ Playing Time</div>
+  `;
   sorted.forEach(p => {
     html += `<div class="result-row">
       <span class="result-name">${escHtml(p.name)}</span>
@@ -639,8 +650,14 @@ function showResults() {
     </div>`;
   });
 
-  document.getElementById('results-content').innerHTML = html;
-  showScreen('results-screen');
+  const dateFile2 = dateFile;
+  html += `
+    <div id="save-indicator" style="text-align:center;color:var(--green);font-size:0.88rem;margin-top:10px;"></div>
+    <button class="btn btn-new-game" onclick="newGame()" style="width:100%;background:var(--green);color:white;font-size:1.3rem;padding:18px;margin-top:16px;box-shadow:0 4px 0 var(--green-dark);border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:1px;">⚽ New Game</button>
+    <div style="height:24px;"></div>
+  `;
+
+  list.innerHTML = html;
 
   // Build and save file
   saveToFile(sorted, intervals, dateFile, dateStr);
@@ -672,8 +689,10 @@ function saveToFile(sorted, ivs, dateFile, dateStr) {
   URL.revokeObjectURL(url);
 
   const ind = document.getElementById('save-indicator');
-  ind.style.display = 'block';
-  ind.textContent = `✅ Saved as game-${dateFile}.txt`;
+  if (ind) {
+    ind.style.display = 'block';
+    ind.textContent = `✅ Saved as game-${dateFile}.txt`;
+  }
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -687,6 +706,9 @@ function escHtml(s) {
 }
 
 function newGame() {
+  document.getElementById('pause-bar').style.display = '';
+  document.getElementById('paused-banner').style.display = '';
+  document.getElementById('end-bar').style.display = '';
   showScreen('setup-screen');
   document.getElementById('clock').textContent = '00:00';
   init();
