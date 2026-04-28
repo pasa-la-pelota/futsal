@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>⚽ Pa trackear quien no sale</title>
+<title>⚽ Player Time Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 
@@ -76,9 +76,9 @@
     margin-bottom: 16px;
     text-align: center;
   }
-  #-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .-input-row { display: flex; gap: 8px; align-items: center; }
-  .-input-row input {
+  #player-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .player-input-row { display: flex; gap: 8px; align-items: center; }
+  .player-input-row input {
     flex: 1;
     padding: 14px 12px;
     font-size: 1.1rem;
@@ -89,8 +89,8 @@
     color: var(--white);
     outline: none;
   }
-  .-input-row input:focus { border-color: var(--yellow); }
-  .btn-remove- {
+  .player-input-row input:focus { border-color: var(--yellow); }
+  .btn-remove-player {
     background: var(--red);
     border: none;
     border-radius: 8px;
@@ -160,10 +160,10 @@
   }
   #paused-banner.visible { display: block; }
 
-  /*  LIST */
-  #-list { padding: 0 16px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+  /* PLAYER LIST */
+  #player-list { padding: 0 16px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 
-  .-card {
+  .player-card {
     background: var(--card-bg);
     border-radius: 14px;
     border: 2px solid var(--border);
@@ -174,24 +174,24 @@
     transition: border-color 0.2s, background 0.2s;
     min-height: 72px;
   }
-  .-card.on-field {
+  .player-card.on-field {
     border-color: var(--green);
     background: #1a3a24;
   }
-  .-card.on-bench {
+  .player-card.on-bench {
     border-color: var(--red);
     background: #3a1a1a;
   }
 
-  .-status-dot {
+  .player-status-dot {
     width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
     background: var(--gray);
     transition: background 0.2s;
   }
-  .-card.on-field .-status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .-card.on-bench .-status-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .player-card.on-field .player-status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .player-card.on-bench .player-status-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
 
-  .-info { flex: 1; min-width: 0; }
+  .player-info { flex: 1; min-width: 0; }
   .player-name {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 1.25rem;
@@ -341,44 +341,44 @@
 <body>
 
 <header>
-  <h1>⚽ Registro de Jugadores y tiempo en cancha</h1>
+  <h1>⚽ Player Tracker</h1>
   <div id="clock">00:00</div>
 </header>
 
 <!-- SETUP SCREEN -->
 <div id="setup-screen" class="screen active">
-  <h2>Nuevo partido — Agregar Jugadores</h2>
+  <h2>New Game — Add Players</h2>
   <div id="player-inputs"></div>
-  <button class="btn btn-add" onclick="addPlayerInput()">＋ Agregar pichanguero</button>
-  <button class="btn btn-start" onclick="startGame()">▶ Empezar Pichanga</button>
+  <button class="btn btn-add" onclick="addPlayerInput()">＋ Add Player</button>
+  <button class="btn btn-start" onclick="startGame()">▶ Start Game</button>
 </div>
 
 <!-- GAME SCREEN -->
 <div id="game-screen" class="screen">
   <div id="pause-bar">
-    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ Pausar Tiempo</button>
+    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
   </div>
-  <div id="paused-banner">⏸ En Pausa</div>
+  <div id="paused-banner">⏸ GAME PAUSED</div>
   <div id="player-list"></div>
   <div id="end-bar">
-    <button class="btn btn-end" onclick="showEndConfirm()">🏁 Terminar Pichanga</button>
+    <button class="btn btn-end" onclick="showEndConfirm()">🏁 END GAME</button>
   </div>
 </div>
 
 <!-- RESULTS SCREEN -->
 <div id="results-screen" class="screen">
-  <h2>Resumen</h2>
+  <h2>Game Summary</h2>
   <div id="results-date"></div>
   <div id="results-content"></div>
   <div id="save-indicator">✅ Saved to file</div>
-  <button class="btn btn-new-game" onclick="newGame()">⚽ Otro Partido</button>
+  <button class="btn btn-new-game" onclick="newGame()">⚽ New Game</button>
 </div>
 
 <!-- CONFIRM END MODAL -->
 <div class="modal-overlay" id="end-modal">
   <div class="modal">
-    <h3>Terminar partido?</h3>
-    <p>Seguro que quieres terminar el partido? Con esto se para el tiempo y se guardan los resultados.</p>
+    <h3>End Game?</h3>
+    <p>Are you sure you want to end the game? This will stop all timers and save the results.</p>
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="hideEndConfirm()">Cancel</button>
       <button class="btn btn-confirm-end" onclick="endGame()">End Game</button>
