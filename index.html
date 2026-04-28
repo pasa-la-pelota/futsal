@@ -356,12 +356,12 @@
 <!-- GAME SCREEN -->
 <div id="game-screen" class="screen">
   <div id="pause-bar">
-    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ Pausar Tiempo</button>
   </div>
-  <div id="paused-banner">⏸ GAME PAUSED</div>
+  <div id="paused-banner">⏸ En Pausa</div>
   <div id="player-list"></div>
   <div id="end-bar">
-    <button class="btn btn-end" onclick="showEndConfirm()">🏁 END GAME</button>
+    <button class="btn btn-end" onclick="showEndConfirm()">🏁 Terminar Pichanga</button>
   </div>
 </div>
 
@@ -371,14 +371,14 @@
   <div id="results-date"></div>
   <div id="results-content"></div>
   <div id="save-indicator">✅ Saved to file</div>
-  <button class="btn btn-new-game" onclick="newGame()">⚽ New Game</button>
+  <button class="btn btn-new-game" onclick="newGame()">⚽ Otro Partido</button>
 </div>
 
 <!-- CONFIRM END MODAL -->
 <div class="modal-overlay" id="end-modal">
   <div class="modal">
-    <h3>End Game?</h3>
-    <p>Are you sure you want to end the game? This will stop all timers and save the results.</p>
+    <h3>Terminar partido?</h3>
+    <p>Seguro que quieres terminar el partido? Con esto se para el tiempo y se guardan los resultados.</p>
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="hideEndConfirm()">Cancel</button>
       <button class="btn btn-confirm-end" onclick="endGame()">End Game</button>
