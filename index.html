@@ -356,12 +356,12 @@
 <!-- GAME SCREEN -->
 <div id="game-screen" class="screen">
   <div id="pause-bar">
-    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+    <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ Pausar Partido</button>
   </div>
   <div id="paused-banner">⏸ GAME PAUSED</div>
   <div id="player-list"></div>
   <div id="end-bar">
-    <button class="btn btn-end" onclick="showEndConfirm()">🏁 END GAME</button>
+    <button class="btn btn-end" onclick="showEndConfirm()">🏁 Pitazo Final</button>
   </div>
 </div>
 
@@ -377,11 +377,11 @@
 <!-- CONFIRM END MODAL -->
 <div class="modal-overlay" id="end-modal">
   <div class="modal">
-    <h3>End Game?</h3>
-    <p>Are you sure you want to end the game? This will stop all timers and save the results.</p>
+    <h3>Terminar Partido?</h3>
+    <p>Seguro? Se para el tiempo y se graban los resultados.</p>
     <div class="modal-btns">
-      <button class="btn btn-cancel" onclick="hideEndConfirm()">Cancel</button>
-      <button class="btn btn-confirm-end" onclick="endGame()">End Game</button>
+      <button class="btn btn-cancel" onclick="hideEndConfirm()">Cancelar</button>
+      <button class="btn btn-confirm-end" onclick="endGame()">Terminar Partido</button>
     </div>
   </div>
 </div>
