@@ -715,6 +715,12 @@ function newGame() {
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────
+window.addEventListener('beforeunload', function(e) {
+  if (gameRunning) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 init();
 </script>
 </body>
