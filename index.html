@@ -121,28 +121,67 @@
     letter-spacing: 1px;
   }
 
-  /* PAUSE/RESUME BIG BUTTON */
+  /* PAUSE/RESUME + COUNTER ROW */
   #pause-bar {
     position: sticky;
     top: 61px;
     z-index: 90;
     padding: 10px 16px 6px;
     background: var(--blue-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   #btn-pause {
-    width: 100%;
+    flex: 1;
     background: var(--yellow);
     color: var(--blue-dark);
-    font-size: 1.5rem;
-    padding: 18px;
+    font-size: 1.1rem;
+    padding: 14px 10px;
     border-radius: 14px;
-    letter-spacing: 2px;
-    box-shadow: 0 4px 0 #a88800;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 0 #a88800;
   }
   #btn-pause.paused {
     background: var(--green);
     color: #fff;
-    box-shadow: 0 4px 0 var(--green-dark);
+    box-shadow: 0 3px 0 var(--green-dark);
+  }
+
+  /* PLAYER COUNTER */
+  #field-counter {
+    flex-shrink: 0;
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 90px;
+  }
+  #field-counter .counter-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray);
+    line-height: 1;
+  }
+  #field-counter .counter-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--white);
+  }
+  #field-counter.ok   { border-color: var(--green); }
+  #field-counter.ok .counter-num { color: var(--green); }
+  #field-counter.warn { border-color: var(--red); animation: flash-warn 0.7s ease-in-out infinite; }
+  #field-counter.warn .counter-num { color: var(--red); }
+
+  @keyframes flash-warn {
+    0%, 100% { background: var(--card-bg); }
+    50%       { background: #3a1a1a; }
   }
 
   /* PAUSED BANNER */
@@ -326,6 +365,10 @@
 <div id="game-screen" class="screen">
   <div id="pause-bar">
     <button class="btn btn-pause" id="btn-pause" onclick="togglePause()">⏸ Pausar Partido</button>
+    <div id="field-counter">
+      <div class="counter-label">En cancha</div>
+      <div class="counter-num" id="counter-num">0</div>
+    </div>
   </div>
   <div id="paused-banner">⏸ PARTIDO PAUSADO</div>
   <div id="player-list"></div>
@@ -483,6 +526,7 @@ function togglePlayer(idx) {
   currentOnField = players.filter(p => p.onField).map(p => p.name);
   currentIntervalStart = gameElapsed;
   renderPlayerList();
+  updatePlayerTimes();
 }
 
 function closeInterval() {
@@ -523,13 +567,22 @@ function renderPlayerList() {
 }
 
 function updatePlayerTimes() {
+  let onFieldCount = 0;
   players.forEach((p, i) => {
     const el = document.getElementById(`ptime-${i}`);
     if (!el) return;
     let t = p.fieldTime;
     if (p.onField && p.fieldStart !== null && !gamePaused) t += Date.now() - p.fieldStart;
     el.textContent = formatTime(t);
+    if (p.onField) onFieldCount++;
   });
+  const numEl = document.getElementById('counter-num');
+  const box   = document.getElementById('field-counter');
+  if (numEl) numEl.textContent = onFieldCount;
+  if (box) {
+    box.classList.toggle('ok',   onFieldCount === 4);
+    box.classList.toggle('warn', onFieldCount !== 4);
+  }
 }
 
 // ── END GAME ───────────────────────────────────────────────────────────────
